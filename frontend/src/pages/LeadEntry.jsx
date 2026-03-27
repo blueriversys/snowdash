@@ -1,4 +1,7 @@
 import React, { useState } from 'react';
+import { useEffect } from 'react';
+
+// Inside your LeadEntry component:
 
 export default function LeadEntry() {
   const [formData, setFormData] = useState({
@@ -20,34 +23,70 @@ export default function LeadEntry() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setStatus('Submitting...');
+//   const handleSubmit = async (e) => {
+//     e.preventDefault();
+//     setStatus('Submitting...');
 
-    try {
-      const response = await fetch('http://localhost:3000/submit-lead', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
+//     try {
+//       const response = await fetch(`${import.meta.env.VITE_API_URL}/submit-lead`, {        
+//         method: 'POST',
+//         headers: { 'Content-Type': 'application/json' },
+//         body: JSON.stringify(formData),
+//       });
 
-      if (response.ok) {
-        setStatus('✅ Success! Your commitment has been recorded.');
-        // Reset form
-        setFormData({
-          firstName: '', lastName: '', middleName: '',
-          street: '', complement: '', city: '', state: '', zip: '',
-          phone: '', email: '',
-          customerType: 'Residential', squareFootage: '', commitmentAmount: ''
-        });
-      } else {
-        const errData = await response.json();
-        setStatus(`❌ Error: ${errData.error || 'Check backend console'}`);
-      }
-    } catch (err) {
-      setStatus('❌ Backend not running. Please start Terminal 1.');
+//       if (response.ok) {
+//         setStatus('✅ Success! Your commitment has been recorded.');
+//         // Reset form
+//         setFormData({
+//           firstName: '', lastName: '', middleName: '',
+//           street: '', complement: '', city: '', state: '', zip: '',
+//           phone: '', email: '',
+//           customerType: 'Residential', squareFootage: '', commitmentAmount: ''
+//         });
+//       } else {
+//         const errData = await response.json();
+//         setStatus(`❌ Error: ${errData.error || 'Check backend console'}`);
+//       }
+//     } catch (err) {
+//       setStatus('❌ Backend not running. Please start Terminal 1.');
+//     }
+//   };
+
+    useEffect(() => {
+    const query = new URLSearchParams(window.location.search);
+
+    if (query.get("success")) {
+        setStatus("✅ Payment successful! Your slot is secured.");
     }
-  };
+
+    if (query.get("canceled")) {
+        setStatus("❌ Payment canceled. Please try again when ready.");
+    }
+    }, []);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setStatus('Redirecting to secure payment...');
+
+        try {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/submit-lead`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData),
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.url) {
+            // REDIRECT TO STRIPE
+            window.location.href = data.url;
+            } else {
+            setStatus(`Error: ${data.error}`);
+            }
+        } catch (err) {
+            setStatus('Connection failed. Is the backend running?');
+        }
+    };
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-6">

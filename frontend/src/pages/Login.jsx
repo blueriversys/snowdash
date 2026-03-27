@@ -30,9 +30,11 @@ export default function Login() {
       return;
     }
     
+    // `${import.meta.env.VITE_API_URL}/submit-lead`
+
     setLoading(true);
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: 'http://localhost:5173/login', // Where they go after clicking the email link
+      redirectTo: `${import.meta.env.VITE_API_URL}/login`, // Where they go after clicking the email link
     });
 
     if (error) {
