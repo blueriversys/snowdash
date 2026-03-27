@@ -6,6 +6,7 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.43.2",
     "cors": "^2.8.5",
+    "debug": "^4.4.3",
     "dotenv": "^17.3.1",
     "express": "^4.19.2",
     "stripe": "^21.0.1"
