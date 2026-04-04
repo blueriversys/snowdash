@@ -139,5 +139,6 @@ def get_leads():
 
 if __name__ == '__main__':
     # For local development: multi-threaded mode enabled
-    app.run(port=3000, threaded=True, debug=True)
+    port = int(os.environ.get("PORT", 3000))
+    app.run(host='0.0.0.0', port=port)
     
