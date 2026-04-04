@@ -58,6 +58,8 @@ app.get('/health', (req, res) => res.send('SnowDash API is running'));
 
 
 app.post('/submit-lead', async (req, res) => {
+  console.log('Received lead submission:', req.body); 
+  
   const { 
     firstName, lastName, middleName, 
     street, complement, city, state, zip,
@@ -78,34 +80,41 @@ app.post('/submit-lead', async (req, res) => {
       .select()
       .single();
 
-    if (dbError) throw dbError;
+      console.log('Database response:', lead);
 
-    // 2. Create Stripe Checkout Session
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items: [
-        {
-          price_data: {
-            currency: 'usd',
-            product_data: {
-              name: `SnowDash Commitment - ${firstName} ${lastName}`,
-              description: `Plow service for ${squareFootage} sqft`,
+      if (dbError) {
+        console.error('Database error:', dbError);
+        throw dbError;
+      }
+
+      console.log('Lead created:', lead);
+
+      // 2. Create Stripe Checkout Session
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        line_items: [
+          {
+            price_data: {
+              currency: 'usd',
+              product_data: {
+                name: `SnowDash Commitment - ${firstName} ${lastName}`,
+                description: `Plow service for ${squareFootage} sqft`,
+              },
+              unit_amount: Math.round(commitmentAmount * 100), // Stripe expects cents
             },
-            unit_amount: Math.round(commitmentAmount * 100), // Stripe expects cents
+            quantity: 1,
           },
-          quantity: 1,
-        },
-      ],
-      mode: 'payment',
-      // Redirect back to your Vercel URL
-      success_url: `${process.env.FRONTEND_URL}/?success=true`,
-      cancel_url: `${process.env.FRONTEND_URL}/?canceled=true`,
-      customer_email: email,
-      client_reference_id: lead.id, // Links the payment to the database record
-    });
+        ],
+        mode: 'payment',
+        // Redirect back to your Vercel URL
+        success_url: `${process.env.FRONTEND_URL}/?success=true`,
+        cancel_url: `${process.env.FRONTEND_URL}/?canceled=true`,
+        customer_email: email,
+        client_reference_id: lead.id, // Links the payment to the database record
+      });
 
-    // 3. Return the Stripe URL to the frontend
-    res.json({ url: session.url });
+      // 3. Return the Stripe URL to the frontend
+      res.json({ url: session.url });
 
   } catch (error) {
     console.error("Stripe/DB Error:", error.message);

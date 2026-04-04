@@ -1,3 +1,4 @@
+//import { errorMonitor } from 'node:events';
 import React, { useState } from 'react';
 import { useEffect } from 'react';
 
@@ -53,37 +54,61 @@ export default function LeadEntry() {
 //   };
 
     useEffect(() => {
-    const query = new URLSearchParams(window.location.search);
+        const query = new URLSearchParams(window.location.search);
 
-    if (query.get("success")) {
-        setStatus("✅ Payment successful! Your slot is secured.");
-    }
+        if (query.get("success")) {
+            setStatus("✅ Payment successful! Your slot is secured.");
+        }
 
-    if (query.get("canceled")) {
-        setStatus("❌ Payment canceled. Please try again when ready.");
-    }
+        if (query.get("canceled")) {
+            setStatus("❌ Payment canceled. Please try again when ready.");
+        }
     }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setStatus('Redirecting to secure payment...');
 
+        //host_url = "http://localhost:3000";
+        console.log(`Submitting lead to ${import.meta.env.VITE_API_URL}/submit-lead`);
+
         try {
             const response = await fetch(`${import.meta.env.VITE_API_URL}/submit-lead`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData),
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(formData),
             });
+
+            console.log('Server response:', response);
+            
+            if (response.status === 204) {
+              setStatus('✅ Success (Empty response from server)');
+              return;
+            }
 
             const data = await response.json();
 
             if (response.ok && data.url) {
-            // REDIRECT TO STRIPE
-            window.location.href = data.url;
+                  //window.location.href = "https://localhost:3000/success";
+
+                  window.location.href = data.url; // Redirect to Stripe Checkout in the same tab
+
+                  // ✅ THIS OPENS A NEW TAB AND TRANSFERS FOCUS
+                  // const newWindow = window.open(data.url, '_blank', 'noopener,noreferrer');
+                  
+                  // if (newWindow) {
+                  //   newWindow.focus(); // Ensure the browser switches to the new tab
+                  //   setStatus('Please complete payment in the new tab.');
+                  // } else {
+                  //   // If the browser blocked the popup
+                  //   setStatus('Popup blocked! Please allow popups or click here to pay: ' + data.url);
+                  //}
             } else {
-            setStatus(`Error: ${data.error}`);
+                  setStatus(`Error: ${data.error}`);
             }
-        } catch (err) {
+
+        } 
+        catch (err) {
             setStatus('Connection failed. Is the backend running?');
         }
     };
@@ -119,7 +144,7 @@ export default function LeadEntry() {
                 <input name="street" value={formData.street} onChange={handleChange} className="w-full border p-2 rounded mt-1" required />
                 </div>
                 <div>
-                <label className="block text-sm font-medium text-gray-700">Complement (Apt, Suite, etc.)</label>
+                <label className="block text-sm font-medium text-gray-700">Complement (Apt, Suite, etc.) (optional)</label>
                 <input name="complement" value={formData.complement} onChange={handleChange} className="w-full border p-2 rounded mt-1" />
                 </div>
             </div>
@@ -162,8 +187,8 @@ export default function LeadEntry() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Square Footage</label>
-              <input name="squareFootage" type="number" value={formData.squareFootage} onChange={handleChange} className="w-full border p-2 rounded mt-1" required />
+              <label className="block text-sm font-medium text-gray-700">Square Footage (optional)</label>
+              <input name="squareFootage" type="number" value={formData.squareFootage} onChange={handleChange} className="w-full border p-2 rounded mt-1" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">Commitment ($)</label>

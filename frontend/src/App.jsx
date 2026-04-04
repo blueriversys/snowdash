@@ -2,6 +2,8 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LeadEntry from      './pages/LeadEntry';
 import Login from          './pages/Login';
 import AdminDashboard from './pages/AdminDashboard';
+import SuccessPage from    './pages/SuccessPage'; 
+import CancelPage from    './pages/CancelPage'; 
 
 function App() {
   return (
@@ -9,6 +11,8 @@ function App() {
       <Routes>
         {/* Public route */}
         <Route path="/" element={<LeadEntry />} />
+        <Route path="/success" element={<SuccessPage />} /> 
+        <Route path="/cancel" element={<CancelPage />} /> 
         
         {/* Admin routes */}
         <Route path="/login" element={<Login />} />
